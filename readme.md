@@ -1,4 +1,4 @@
-# Small programs I've made while I was studyin in Uni.
+# Description
 Compilation of programs I've made while I was studying at Uni. I will fork out specific programs that I take interest in and develop it further whenever I have the motivation to. Most programs are in-progress and unfinished.
 
 In progress. Will be adding more. I'm cleaning them up before adding them here.
