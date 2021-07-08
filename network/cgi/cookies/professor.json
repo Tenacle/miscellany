@@ -1,0 +1,14 @@
+{
+    "events": [
+        {
+            "eventName": "Get marks", 
+            "eventDesc": "Get the marks from the markers", 
+            "eventDate": "2018-08-03"
+        }, 
+        {
+            "eventName": "Make tests", 
+            "eventDesc": "Generate ideas and questions for tests", 
+            "eventDate": "2018-09-15"
+        }
+    ]
+}

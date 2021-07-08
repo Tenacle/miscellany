@@ -1,0 +1,11 @@
+{"users":[{
+    "userID": "marker",
+    "events": "../json/marker.json"
+    }, {
+    "userID": "admin",
+    "events": "../json/admin.json"
+    }, {
+    "userID": "professor",
+    "events": "../json/professor.json"
+    }]
+}

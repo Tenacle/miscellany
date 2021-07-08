@@ -1,0 +1,24 @@
+hello world
+testing:
+abc def ghi
+abc atd ogh
+
+cat
+cat
+cat
+
+dog
+dog
+dog
+
+default: CATTODOG
+dog stays as dog    (DOG)
+cat changes to dog  (CAT)
+
+state: DOGTOCAT
+cat stays as cat    (CAT)
+dog changes to cat  (DOG)
+
+state: NORMAL
+cat stays as cat    (CAT)
+dog stays as dog    (DOG)

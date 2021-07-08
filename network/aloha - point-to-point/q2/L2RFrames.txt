@@ -1,0 +1,7 @@
+L2R here. I am sending this msg. Hope that you receive it however you are.
+L2R here again. This is probably the second frame. This is a prerecorded message.
+L2R here. I've written this all in a text file. My delimiter is a newline
+L2R here. I'm not sure how many msgs I need to send. I do know that I need to check for edge cases.
+L2R here. I will try to send some 0x7E characters to see how it turns out. ok?
+L2R here. Hi~ I am using these cute msgs~ You don't like it?? ~.~ ~o~ ~_~
+L2R here. Did it work? Welp I'm off. thanks.

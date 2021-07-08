@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Instructor: Dr. Rasit Eskicioglu" />
+  <title>COMP3430 Winter 2020 – Assignment 4</title>
+  <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style>
+body { margin: 20px; font-family: Lato,'Lucida Sans Unicode','Lucida Grande',sans-serif; line-height: 1.5em; } table { border-collapse: collapse; } table,th,td { border: 1px solid #ddd; padding: 10px; margin: 10px; }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">COMP3430 Winter 2020 – Assignment 4</h1>
+<p class="author"><strong>Instructor</strong>: Dr. Rasit Eskicioglu</p>
+<p class="date">Due on <strong>Friday, April 10<sup>th</sup> @ 11:59pm</strong></p>
+</header>
+<h1 id="outcomes">Outcomes</h1>
+<p>Assignment 4 is evaluating you on the following outcomes:</p>
+<ul>
+<li>Implement a read-only filesystem (FAT32 whitepaper)</li>
+</ul>
+<h1 id="general-submission-requirements">General submission requirements</h1>
+<p>Submissions that violate any of the following <strong>will not</strong> be evaluated, under any circumstances:</p>
+<ul>
+<li>All solutions must be written in C. No other languages are accepted unless explicitly permitted.</li>
+<li>All solutions must include a <code>Makefile</code>, with a <code>clean</code> rule.</li>
+<li>All solutions must be compiled by issuing the command <code>make</code> in the directory containing the <code>Makefile</code>.</li>
+<li>All solutions must include a <a href="https://guides.github.com/features/mastering-markdown/" target="_blank">Markdown-formatted</a> <code>README</code> file that <em>minimally</em> describes how to run your submission.</li>
+<li>All solutions must <em>run</em>. Premature termination for any reason (no obvious output, <code>Segmentation Fault</code>, <code>Bus Error</code>, etc.) is considered to be a solution implementation that does not run. Code that does not compile is also considered to be a solution implementation that does not run.
+<ul>
+<li>Note that this is <strong>strict</strong>: Segmentation fault for <em>any</em> reason, even not supplying the correct number of arguments to your program, even if documented in your README, is considered to be code that does not run.</li>
+</ul></li>
+<li>Programs must produce no errors when compiled with the flags <code>-Wall -Wpedantic -Wextra -Werror</code>. Note that <code>-Werror</code> <em>prevents</em> your code from being <strong>compiled</strong> when warnings are present. If your code does not compile, it will not be graded.</li>
+<li>Late submissions are not accepted.</li>
+</ul>
+<p><strong>Reminder</strong>: All submitted code will be evaluated using an <a href="https://dickgrune.com/Programs/similarity_tester/" target="_blank">automated similarity testing tool</a>, alongside commonly available online solutions for problems.</p>
+<h1 id="question-1---implementing-a-file-system-reader">Question 1 - Implementing a File System <em>reader</em></h1>
+<p>In this question, you will write a program that reads a FAT32-formatted volume. For this assignment you are provided with a disk image - though you are</p>
+<ol type="1">
+<li>Encouraged to <a href="#make-your-own-disk-image">make your own disk image</a>, and</li>
+<li>Encouraged to read a USB flash drive as a raw device (i.e., <code>/dev/disk3</code>).</li>
+</ol>
+<h2 id="required-commands">Required commands</h2>
+<p>You must implement 3 commands (all part of the same program):</p>
+<ol type="1">
+<li>The <code>info</code> command: Print information about the drive. The command, assuming your program is named <code>fat32</code>, would be <code>./fat32 imagename info</code>. Print out the following:
+<ul>
+<li>Drive name</li>
+<li>Free space on the drive in kB <mark># of free clusters × sectors per cluster × bytes per sector (basically: how many <em>more</em> bytes can you write to this volume on top of what’s already there?)</mark></li>
+<li>The amount of usable storage on the drive (not free, but usable space) <mark># of sectors × bytes per sector - space used by BPB, FAT(s), reserved signature sectors (basically: how many total <em>data</em> bytes can I write to this volume?)</mark></li>
+<li>The cluster size in number of sectors, and in <del>KB</del> <mark><ins>bytes</ins></mark>.</li>
+</ul></li>
+<li>The <code>list</code> command: Output all files and directories on the drive. The output should look roughly like the output from <code>tree</code>, where there is the same number of <code>-</code> characters as the depth of the file/folder. The command, assuming your program is named <code>fat32</code>, would be <code>./fat32 imagename list</code>. Output should look something like:</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="ex">file.txt</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="ex">Directory</span>: FOLDER</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="ex">-Directory</span>: FOLDER2</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="ex">--Directory</span>: FOLDER3</span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="ex">---File</span>: THEFILE.TXT</span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="ex">file2.txt</span></span></code></pre></div>
+<ol start="3" type="1">
+<li><p>The <code>get</code> command: Be able to fetch, and return a file from the drive. The command, assuming your program is named <code>fat32</code> would be <code>./fat32 imagename get path/to/file.txt</code></p>
+<p><mark><ins>The path you pass to your program is assumed to be an absolute path (it starts at the root directory), even if it doesn’t have a leading <code>/</code>.</ins></mark></p>
+<p><mark><ins>The path you pass to your program should be written out as a file to the same directory as your program with the same name as the file in the FAT32 image. If the example above is executed, you should write the contents of the file at <code>path/to/file.txt</code> to a file named <code>file.txt</code> in the same directory as the <code>./fat32</code> binary executable.</ins></mark></p></li>
+</ol>
+<p>To work with the disk / disk image, use the low-level, unbuffered <code>open</code>, <code>close</code>, <code>read</code>, <code>write</code>, and <code>lseek</code> system calls. This will save you headaches, buffering, conversions, etc., and let you work on the byte level.</p>
+<p>The canonical source of all information about the FAT format can be found in the <a href="MSFAT32.pdf">Microsoft white paper on FAT</a> (<a href="FAT32白皮书.pdf">Chinese version</a> is also included for your convenience. Please also refer to the material posted in D2L for other supplementary resources on FAT.</p>
+<p>You should start by implementing the interface defined by <a href="fat32.h"><code>fat32.h</code></a>. This header provides a <code>struct</code> data structure for the boot sector. In addition to any other data structures you may need for your implementation, you will need to create similar structs for the <code>FSInfo</code> and <code>fat32Dir</code> types. Note the datatypes used instead of the standard <code>int</code>, etc. Note carefully the <code>#pragma</code> commands used and use them for any structures that you tie directly to reading from disk. These commands are used to ensure that your data structures are <a href="http://en.wikipedia.org/wiki/Data_structure_alignment" target="_blank">aligned</a>.</p>
+<p>Finally, you’ve been provided with a <a href="a4image.zip">disk image for testing</a>. Note that you have to <em>unzip</em> this image before trying to use it…</p>
+<h2 id="implementation-notes">Implementation notes</h2>
+<h3 id="directories">Directories</h3>
+<p>Directories are simply files on disk with a special format. There are some good things to note before reading a directory:</p>
+<ul>
+<li>The first byte of an entry tells you things such as whether the entry is empty or if it’s the last entry.</li>
+<li>You will find empty entries interspersed through the directory. Do not stop searching on an empty entry! Only the last one!</li>
+<li>A directory file can be quite large and span multiple clusters (Check in the FAT!), so don’t just stop at one cluster.</li>
+<li>The most confusing part here is that you will find what appear to be garbage entries. FAT12/16 only supported 8-character file names with a 3-character extension. FAT32 added long filename support but did it in a way that is backward compatible – old FAT16/12 systems would only see an 8 char version. For example, the file <code>"somelargefile"</code> would show up as <code>"SOMELA~1"</code> – you may have seen such files up until the mid 2000’s. The full filename is hidden across several extra added directory entries. For this assignment we will use the short names only (much simpler) and can skip the filler entries. Note that you can filter out these unwanted long-name additional entries by filtering against the <code>ATTR_LONG_NAME</code> attribute.</li>
+<li>An additional side effect is that everything in FAT12/16 was uppercase, so you should stick to uppercase.</li>
+<li>Directory entries inside a directory point to the cluster where another directory file is stored – look in that file to see what is in the directory.</li>
+</ul>
+<h3 id="memory-and-data-types">Memory and Data Types</h3>
+<p>Integer overflows, memory layout, and alignment are serious issues in this assignment. Note <code>#pragma</code> comment above. When dealing with addressing specific bytes of a file (or disk…) and you seek using the <code>lseek</code> command, you can easily get bytes addressed well out of range of a standard 32 bit integer, particularly if it is signed. When dealing with addresses use the explicit <code>uint32_t</code> family of types to be sure you have enough memory, and use the <code>off_t</code> type (file offset, as in <code>man lseek</code>) to be safe. In addition, you will want to add the following line to the TOP of your <code>fat32.c</code> file before you load the system libraries:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1"></a><span class="pp">#define _FILE_OFFSET_BITS 64</span></span></code></pre></div>
+<p>This tells the compiler to make the <code>off_t</code> 64 bits wide instead of 32 bits. Further, it is recommended that you think of reading and writing to disk in units of sectors and clusters. Not only for efficiency reasons, but it will help you conceptualize the assignment a lot easier. Try to work in sectors and clusters as much as possible and only convert to bytes when necessary (e.g., when doing a seek and read).</p>
+<h3 id="disk-layout">Disk layout</h3>
+<p>Here’s a <em>brief</em> overview of the disk layout:</p>
+<ol type="1">
+<li><strong>Reserved Area</strong> - boot sector and bios parameter block (BPB) at sector 0 (1 sector only). Read sector 0 directly into the <code>struct fat32BS_struct</code> provided.</li>
+<li><strong>FAT Area</strong> - File allocation table (list of 32-bit entries). Immediately follows the reserved area. These are 28-bit addresses - the top 4 bits are reserved, and should be masked-out when you are reading the given address. These address the <strong>cluster number</strong> of the next piece of data, or are a flag representing some well-known value (refer to the whitepaper for all well-known values).</li>
+<li><strong>Data Area</strong> - Most of the disk. All the file data is stored in here, directory entries are stored in here. NOTE: The first cluster of this area is officially called Cluster 2 regardless of where it starts on the disk. The space used by the proceeding two areas is quite definitely more than 2 clusters large (which would only be ~8k on many disks) luckily, from here the following clusters are of the appropriate size. you calculate the sector of cluster <code>c</code> on disk by: <code>(c-2)*SectorsPerCluster + reservedSize + FATSize*FATCount</code></li>
+</ol>
+<h3 id="additional-notes">Additional Notes</h3>
+<ul>
+<li>The top 2 addresses of the FAT are are signatures. You must validate these signatures before using the file system</li>
+<li>The FAT can be quite large so do not load the entire FAT into memory at once.</li>
+<li>Be very careful with unit types! You will need to work in sectors, clusters, and bytes, at different times. Maybe create functions to convert the types.</li>
+</ul>
+<h2 id="evaluation">Evaluation</h2>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Level</th>
+<th>Criteria</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>No attempt is made to answer this question</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td><p>A program is written that implements a command parser correctly.</p>
+<p>In other words, the program can be executed with the commands defined above, and code exists to parse the commands, but none of the commands are implemented.</p></td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td><p>The criteria for 1 is met.</p>
+<p>The <code>info</code> command is implemented and works correctly.</p></td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td><p>The criteria for 2 is met.</p>
+<p>The <code>list</code> command is implemented and works correctly.</p></td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td><p>The criteria for 3 is met.</p>
+<p>The <code>get</code> command is implemented and works correctly.</p></td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td><p>The criteria for 4 is met.</p>
+<p>The implemented program has objectively high quality. That is, the solution must meet the following criteria:</p>
+<ul>
+<li>Apply the principles of <a href="https://en.wikipedia.org/wiki/Defensive_programming" target="_blank">defensive programming</a> and <a href="https://en.wikipedia.org/wiki/Design_by_contract" target="_blank">design by contract</a>.</li>
+<li>Avoid the use of magic numbers (use <code>#define</code> or <code>const</code>)</li>
+<li>Have consistent formatting (use <code>clang-format</code> or some other <a href="https://github.com/caramelomartins/awesome-linters#cc" target="_blank">linting software</a>).</li>
+</ul></td>
+</tr>
+</tbody>
+</table>
+<p>Note that you must meet <strong>all</strong> criteria to achieve a score. If you implement the <code>get</code> command and the <code>info</code> command, but the <code>list</code> command does not work, then the maximum score you could possibly achieve is 2.</p>
+<p><strong>Bonus</strong>: A 1 point bonus is available for implementing long filename support.</p>
+<h1 id="submitting-your-assignment">Submitting your assignment</h1>
+<p>Submissions will be made using the <code>handin</code> command available on all CS UNIX systems.</p>
+<p>Make sure to run <code>make clean</code>, before submitting your assignment. If your files are in a folder named <code>my_a4</code>, you would run the command:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="ex">handin</span> 3430 a4 my_a4</span></code></pre></div>
+<p>If you need more information, you can see <code>man handin</code>.</p>
+<ul>
+<li><strong>Do not</strong> include any disk images in your hand in.</li>
+</ul>
+<h1 id="advice">Advice</h1>
+<h2 id="make-your-own-disk-image">Make your own disk image</h2>
+<p>The first piece of advice has to do with making your own test data for your solution: <strong>You can make your <em>own</em> disk images.</strong></p>
+<p>You can use a few different tools to create your own disk images for testing your code:</p>
+<ol type="1">
+<li><code>dd</code>: to create an empty file with a specified size.</li>
+<li><code>mkfs.msdos</code>: to format the file as a FAT file system.</li>
+<li><code>mdir</code>: to inspect the contents of the file system.</li>
+<li><code>mcopy</code>: to copy files into the file system.</li>
+</ol>
+<p>Here’s <a href="https://stackoverflow.com/a/11202773" target="_blank">a handy link to a StackOverflow post</a> that demonstrates how to use these commands together.</p>
+<p>You should also refer to the manual pages for <code>mkfs.msdos</code> (for options on how to make your file system image with a label, and how to specify a FAT 32 file system for example) and <code>mcopy</code> (for options on how to copy files and directories to the image).</p>
+<h2 id="specific-implementation-advice">Specific implementation advice</h2>
+<p>Here’s some <em>specific</em> advice that you can choose to follow or ignore:</p>
+<ol type="1">
+<li>You will most likely get overflows, null pointers, etc. Some bad math and who knows where you’ll end up on disk (or in memory!). Be extremely defensive in your programming.</li>
+<li>Check parameters, ranges, and <code>printf</code> meaningful error messages. This will save you debug time.</li>
+</ol>
+<p>In short: <strong>don’t</strong> leave adding DbC and defensive programming to the end, do it the whole time!</p>
+<ol start="3" type="1">
+<li>First, load and parse the boot sector / bpb into the <code>struct</code> and write your <code>info</code> function as much as possible. CHECK THE SIGNATURE BYTES. This tells you if you loaded it correctly.</li>
+<li>Calculate the location of the FAT and check the FAT Signature.</li>
+<li>Implement functions to read specific FAT items for disk clusters</li>
+</ol>
+<h2 id="general-advice">General advice</h2>
+<p>… and some <em>general</em> advice, as always:</p>
+<ol type="1">
+<li>As always: the debugger is your <strong>best friend</strong> <span class="emoji" data-emoji="two_men_holding_hands">👬</span>. Don’t even start trying to solve this problem until you’re comfortable with a debugger (either <code>lldb</code> or <code>gdb</code>). The first question I’m going to ask when you come to ask me for help is: “Have you tried running it through the debugger yet?” If you answer “no”, I’ll send you away to do that <em>first</em>, then come back.</li>
+</ol>
+</body>
+</html>

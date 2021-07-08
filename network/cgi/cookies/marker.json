@@ -1,0 +1,13 @@
+{
+    "events": [
+        {
+            "eventName": "Finish marking", 
+            "eventDesc": "Finish marking the assignments and give the results to prof", 
+            "eventDate": "2018-07-30"
+        }, {
+            "eventName": "Hobby", 
+            "eventDesc": "Start doing something cool and interesting", 
+            "eventDate": "2018-08-01"
+        }
+    ]
+}

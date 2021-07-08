@@ -1,0 +1,14 @@
+{
+    "events": [
+        {
+            "eventName": "Do some dev tasks", 
+            "eventDesc": "do some cool stuff with the servers", 
+            "eventDate": "2018-08-28"
+        }, 
+        {
+            "eventName": "Walk the dog", 
+            "eventDesc": "doggo needs walking at teh park", 
+            "eventDate": "2019-01-28"
+        }
+    ]
+}

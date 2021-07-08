@@ -1,0 +1,4 @@
+2   c   6   b   2   b   6   5   0   1   6   b   e   d   a   6 
+e   b   2   d   a   9   4   0   d   4   a   f   c   a   7   0 
+4   2   1   6   6   f   f   c   4   5   e   1   1   d   3   5 
+b   8   c   7   8   6   0   a   7   2   8   2   b   2   b   5 
